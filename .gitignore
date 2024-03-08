@@ -26,4 +26,3 @@ replay_pid*
 # VS Code
 .vscode/
 .target/
-CubeRenderer.java
