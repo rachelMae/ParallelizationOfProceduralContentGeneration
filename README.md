@@ -30,3 +30,9 @@ To run the .jar file, follow these steps:
 
 4. The application should now start running. Follow any on-screen instructions or prompts provided by the application.
 
+
+## Running Perlin Noise
+
+Run from the Perlin Noise generator file, You can specify the size in the file before executing for both 2d and 3d noise to be generated into a png format.
+
+
