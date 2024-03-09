@@ -35,4 +35,9 @@ To run the .jar file, follow these steps:
 
 Run from the Perlin Noise generator file, You can specify the size in the file before executing for both 2d and 3d noise to be generated into a png format.
 
+## Running Wave Function Collapse
+
+Run wave collapse from the main.java file. Find it in the src file with the next algorithm.
+
+## Running Worley Noise
 
