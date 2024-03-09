@@ -1,5 +1,7 @@
 package io.github.hunterherbst;
 
+import java.awt.image.BufferedImage;
+
 public class Worley {
 
     private int width;
@@ -85,7 +87,7 @@ public class Worley {
         // the difference is that this now should be wrapping around the edges
         for (int y = 0; y < this.height; y++) {
             for (int x = 0; x < this.width; x++) {
-                float minDistance = distance(x, y, this.points[0][0], this.points[0][1]);
+                float minDistance = distanceWrapped(x, y, this.points[0][0], this.points[0][1], this.width, this.height);
                 for (int i = 1; i < this.numPoints; i++) {
                     float d = distanceWrapped(x, y, this.points[i][0], this.points[i][1], this.width, this.height);
                     if (d < minDistance) {
@@ -159,6 +161,17 @@ public class Worley {
 
     public int getHeight() {
         return this.height;
+    }
+
+    public BufferedImage toBufferedImage() {
+        BufferedImage img = new BufferedImage(this.width, this.height, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < this.height; y++) {
+            for (int x = 0; x < this.width; x++) {
+                int c = (int) (this.data[x][y] * 255);
+                img.setRGB(x, y, (c << 16) | (c << 8) | c);
+            }
+        }
+        return img;
     }
 
 }
