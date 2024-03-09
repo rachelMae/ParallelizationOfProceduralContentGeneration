@@ -41,3 +41,4 @@ Run wave collapse from the main.java file. Find it in the src file with the next
 
 ## Running Worley Noise
 
+Run Worley noise from the application.java file
