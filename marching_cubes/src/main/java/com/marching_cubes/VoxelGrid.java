@@ -6,9 +6,9 @@ import org.joml.Vector3f;
 
 /* Marching Cube Algorithm without multithreading */
 public class VoxelGrid {
-    private ArrayList<Float> voxel_grid; // 1-dimensional representation of a 3-dimensional grid
+    public ArrayList<Float> voxel_grid; // 1-dimensional representation of a 3-dimensional grid
 
-    private int resolution;
+    public int resolution;
 
     public static final int SURFACE_LEVEL = 100;
 
@@ -26,6 +26,11 @@ public class VoxelGrid {
                 }
             }
         }
+    }
+
+    public VoxelGrid(ArrayList<Float> voxel_grid, int resolution) {
+        this.voxel_grid = voxel_grid;
+        this.resolution = resolution;
     }
 
     public float read(int x, int y, int z) {
@@ -100,14 +105,12 @@ public class VoxelGrid {
     // Tests the VoxelGrid class
     // Outputs the time it takes to run just the marching cubes algorithm at various resolutions
     public static void main(String[] args) {
-        if (args.length != 1) {
-            System.out.println("Usage: java VoxelGrid <resolution>");
-            return;
+        int resolution = 200;
+        if (args.length == 1) {
+            resolution = Integer.parseInt(args[0]);
         }
-        String input = args[0];
-        int res = Integer.parseInt(input);
         long start = System.nanoTime();
-        VoxelGrid voxel_grid = new VoxelGrid(res);
+        VoxelGrid voxel_grid = new VoxelGrid(resolution);
         voxel_grid.create_grid();
         long end = System.nanoTime();
         System.out.println("Time (s): " + (end - start) / 1000000000.0 + "s");

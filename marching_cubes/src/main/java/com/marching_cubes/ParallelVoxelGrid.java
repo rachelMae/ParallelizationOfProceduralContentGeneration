@@ -112,6 +112,24 @@ public class ParallelVoxelGrid implements Runnable {
         // return (float) (Math.sin(x) * Math.cos(y) + Math.sin(y) * Math.cos(z) + Math.sin(z) * Math.cos(x));
     }
 
+    public ArrayList<Vector3f> create_grid() {
+        int num_threads = 8;
+        Thread[] threads = new Thread[num_threads];
+        for (int i = 0; i < num_threads; i++) {
+            threads[i] = new Thread(this, "Thread " + i);
+            threads[i].start();
+        }
+
+        for (Thread thread : threads) {
+            try {
+                thread.join(); // wait for each thread to finish
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return new ArrayList<Vector3f>(positions);
+    }
+
     // Tests the VoxelGrid class
     // Outputs the time it takes to run just the marching cubes algorithm at various resolutions
     public static void main(String[] args) {

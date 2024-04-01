@@ -3,7 +3,6 @@ package com.marching_cubes;
 import org.lwjgl.opengl.GL;
 
 import static com.marching_cubes.ShaderUtils.*;
-import static com.marching_cubes.VoxelGrid.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL20.*;
@@ -15,7 +14,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class Main {
-    public static int resolution = 10;
+    public static int resolution = 400;
 
     public static void main(String[] args) {
 
@@ -77,14 +76,21 @@ public class Main {
         glUniformMatrix4fv(projectionMatrixLocation, false, projectionMatrix.get(new float[16]));
 
         // create a voxel grid with resolution 10
-        VoxelGrid voxel_grid = new VoxelGrid(10);
+        // VoxelGrid voxel_grid = new VoxelGrid(10);
+        // create a multihreaded voxel grid with resolution 10
+        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(resolution, 8);
+        // ParallelVoxelGrid voxel_grid = new ParallelVoxelGrid(resolution);
         Mesh mesh = new Mesh();
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
 
         // if in pre-computed mode, run marching cubes algorithm before entering loop
         if (option == 2) {
             // run marching cubes algorithm
+            long start = System.nanoTime();
             positions = voxel_grid.create_grid();
+            long end = System.nanoTime();
+            System.out.println("Time (s): " + (end - start) / 1000000000.0 + "s");
+
             // convert positions to float array
             float[] vertices = new float[positions.size() * 3];
             for (int i = 0; i < positions.size(); i++) {
@@ -109,21 +115,21 @@ public class Main {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             // Draw wireframe cubes around each voxel
-            for (int i = 0; i < resolution; i++) {
-                for (int j = 0; j < resolution; j++) {
-                    for (int k = 0; k < resolution; k++) {
-                        // Calculate voxel position
-                        float voxelSize = 1.0f;
-                        float voxelSpacing = 1.0f; // Adjust as needed
-                        float xPos = i * voxelSpacing;
-                        float yPos = j * voxelSpacing;
-                        float zPos = k * voxelSpacing;
+            // for (int i = 0; i < resolution; i++) {
+            //     for (int j = 0; j < resolution; j++) {
+            //         for (int k = 0; k < resolution; k++) {
+            //             // Calculate voxel position
+            //             float voxelSize = 1.0f;
+            //             float voxelSpacing = 1.0f; // Adjust as needed
+            //             float xPos = i * voxelSpacing;
+            //             float yPos = j * voxelSpacing;
+            //             float zPos = k * voxelSpacing;
 
-                        // Draw wireframe cube
-                        drawWireframeCube(xPos, yPos, zPos, voxelSize);
-                    }
-                }
-            }
+            //             // Draw wireframe cube
+            //             drawWireframeCube(xPos, yPos, zPos, voxelSize);
+            //         }
+            //     }
+            // }
 
             // if in real-time mode, run marching cubes algorithm inside loop
             if (option == 1) {
@@ -147,10 +153,10 @@ public class Main {
                 }
 
                 // run marching cubes algorithm
-                march_cube(x, y, z,
-                    voxel_grid,
-                    positions
-                );
+                // VoxelGrid.march_cube(x, y, z,
+                //     voxel_grid,
+                //     positions
+                // );
 
                 // convert positions to float array
                 float[] vertices = new float[positions.size() * 3];
