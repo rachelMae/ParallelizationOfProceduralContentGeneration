@@ -7,16 +7,17 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import org.joml.Vector3f;
 
-/* Marching Cube Algorithm with multithreading */
+/* Marching Cube Algorithm with Shared Resources between Threads */
 // This method uses a shared voxel grid, shared positions list,
 // and shared atomic integers to keep track of the current cube
 // The cubes are stored in a queue and each thread takes a cube from the queue,
 // performs the marching cubes algorithm on it,
 // and adds the vertices to the shared positions list
+// ******DOES NOT PERFORM AS WELL AS GRIDPROCESSOR********
 
 /* To Do */
 // * Experiment with having position array be on a separate lock / lockless
-// - so that marching cube algorithm is run outside the critical section
+// so that marching cube algorithm is run outside the critical section
 
 public class ParallelVoxelGrid implements Runnable {
     // 1-dimensional representation of a 3-dimensional grid

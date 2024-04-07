@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.joml.Vector3f;
 
+/** Marching Cubes Algorithm with Mulithreading */
 // Each thread takes on a "chunk" of the voxel grid
 // For example, if the voxel grid is 128x128x128 and there are 32 threads, each thread will take on 4 rows of the voxel grid. These look like slabs:
 
@@ -84,6 +85,8 @@ class MultithreadedVoxelGrid {
     private ArrayList<Float> voxel_grid;
     private ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
     private int num_threads;
+
+    // Constructor with no voxel grid provided
     public MultithreadedVoxelGrid(int resolution, int num_threads) {
         this.resolution = resolution;
         this.num_threads = num_threads;
@@ -98,7 +101,27 @@ class MultithreadedVoxelGrid {
         }
     }
 
-    public ArrayList<Vector3f> create_grid() {
+    // Constructor with voxel grid provided
+    public MultithreadedVoxelGrid(ArrayList<Float> voxel_grid, int resolution, int num_threads) {
+        this.resolution = resolution;
+        this.num_threads = num_threads;
+        this.voxel_grid = voxel_grid;
+    }
+
+    public MultithreadedVoxelGrid(float[][][] voxel_grid, int resolution, int num_threads) {
+        this.resolution = resolution;
+        this.num_threads = num_threads;
+        this.voxel_grid = new ArrayList<Float>();
+        for (int z = 0; z < resolution; z++) {
+            for (int y = 0; y < resolution; y++) {
+                for (int x = 0; x < resolution; x++) {
+                    this.voxel_grid.add(voxel_grid[z][y][x]);
+                }
+            }
+        }
+    }
+
+    public ArrayList<Vector3f> create_positions() {
         // initialize threads and grid processors
         Thread[] threads = new Thread[num_threads];
         GridProcessor[] grid_processors = new GridProcessor[num_threads];
@@ -148,7 +171,7 @@ class MultithreadedVoxelGrid {
         long start = System.nanoTime();
         System.out.println("Starting voxel grid creation with resolution " + resolution + " and " + num_threads + " threads");
 
-        example.create_grid();
+        example.create_positions();
 
         long end = System.nanoTime();
 

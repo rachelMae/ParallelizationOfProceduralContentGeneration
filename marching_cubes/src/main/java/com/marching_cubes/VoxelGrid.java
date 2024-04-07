@@ -33,6 +33,19 @@ public class VoxelGrid {
         this.resolution = resolution;
     }
 
+    public VoxelGrid(float[][][] voxel_grid, int resolution) {
+        this.voxel_grid = new ArrayList<Float>();
+        this.resolution = resolution;
+
+        for (int z = 0; z < resolution; z++) {
+            for (int y = 0; y < resolution; y++) {
+                for (int x = 0; x < resolution; x++) {
+                    this.voxel_grid.add(voxel_grid[x][y][z]);
+                }
+            }
+        }
+    }
+
     public float read(int x, int y, int z) {
         return this.voxel_grid.get(x + y * resolution + z * resolution * resolution);
     }
