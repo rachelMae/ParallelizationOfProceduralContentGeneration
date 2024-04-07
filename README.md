@@ -2,6 +2,14 @@
 
 ## Running Marching Cubes
 
+To create the .jar file using Visual Studio Code:
+
+1. Clone this repository.
+2. Open Visual Studio Code and open the `marching_cubes` folder containing the LWJGL project.
+3. Install Java Extension Pack and Maven for Java.
+4. Go to "JAVA PROJECTS" on the left and click "Export Jar...".
+5. Select "Main" and keep the default selected elements (14 in total).
+
 To run the .jar file, follow these steps:
 
 1. Make sure you have Java installed on your machine. You can check by running the following command in your terminal:
@@ -21,3 +29,16 @@ To run the .jar file, follow these steps:
     ```
 
 4. The application should now start running. Follow any on-screen instructions or prompts provided by the application.
+
+
+## Running Perlin Noise
+
+Run from the Perlin Noise generator file, You can specify the size in the file before executing for both 2d and 3d noise to be generated into a png format.
+
+## Running Wave Function Collapse
+
+Run wave collapse from the main.java file. Find it in the src file with the next algorithm.
+
+## Running Worley Noise
+
+Run Worley noise from the application.java file
