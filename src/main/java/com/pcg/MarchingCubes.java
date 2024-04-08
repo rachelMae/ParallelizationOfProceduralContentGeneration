@@ -87,12 +87,18 @@ public class MarchingCubes {
         worley.invert();
         float[][][] worley_noise = worley.getData();
 
+        // Create Perlin Noise
+        PerlinNoiseGenerator png = new PerlinNoiseGenerator();
+        float[][][] perlin = png.generatePerlinNoise3D(resolution, resolution, resolution, 0.1);
+
+
         // NON-multithreaded
         // VoxelGrid voxel_grid = new VoxelGrid(resolution);
         // VoxelGrid voxel_grid = new VoxelGrid(worley_noise, resolution);
 
         // Multihreaded
-        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(worley_noise, resolution, 8); // Chunkify
+//        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(worley_noise, resolution, 8); // Chunkify
+        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(perlin, resolution, 8); // Chunkify
         // ParallelVoxelGrid voxel_grid = new ParallelVoxelGrid(worley_noise, resolution); // Shared Counter
 
         Mesh mesh = new Mesh();
@@ -226,17 +232,21 @@ public class MarchingCubes {
 
             // Set the camera position
             if (camera.pressedKeys[GLFW_KEY_W]) {
-                camera.strafeLeft(0.1f);
+                camera.moveForward(1f);
             }
             if (camera.pressedKeys[GLFW_KEY_S]) {
-                camera.strafeRight(0.1f);
+                camera.moveForward(-1f);
             }
             if (camera.pressedKeys[GLFW_KEY_A]) {
-                camera.walkForward(0.1f);
+                camera.moveLeft(1f);
             }
             if (camera.pressedKeys[GLFW_KEY_D]) {
-                camera.walkBackwards(0.1f);
+                camera.moveLeft(-1f);
             }
+            if(camera.pressedKeys[GLFW_KEY_ESCAPE]) {
+                glfwSetWindowShouldClose(window, true);
+            }
+
             viewMatrix = camera.getViewMatrix();
             glUniformMatrix4fv(viewMatrixLocation, false, viewMatrix.get(new float[16]));
 

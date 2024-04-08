@@ -9,10 +9,7 @@ import static org.lwjgl.opengl.GL15.glGenBuffers;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.*;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.FloatBuffer;
 
 import java.nio.FloatBuffer;
@@ -26,7 +23,7 @@ public class ShaderUtils {
     public static String loadShaderSource(String filename) throws IOException {
         StringBuilder shaderSource = new StringBuilder();
         InputStream in = ClassLoader.getSystemResourceAsStream(filename);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+        BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
         while ((line = reader.readLine()) != null) {
             shaderSource.append(line).append("\n");
@@ -41,8 +38,8 @@ public class ShaderUtils {
         int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
         try {
-            String vertexShaderSource = ShaderUtils.loadShaderSource("com/pcg/shaders/vertShader.glsl");
-            String fragmentShaderSource = ShaderUtils.loadShaderSource("com/pcg/shaders/fragShader.glsl");
+            String vertexShaderSource = ShaderUtils.loadShaderSource("src/main/java/com/pcg/shaders/vertShader.glsl");
+            String fragmentShaderSource = ShaderUtils.loadShaderSource("src/main/java/com/pcg/shaders/fragShader.glsl");
 
             // Load and compile vertex shader
             glShaderSource(vertexShader, vertexShaderSource);
