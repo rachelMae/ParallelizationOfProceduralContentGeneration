@@ -14,20 +14,21 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class MarchingCubes {
-    public static int resolution = 256;
+    public static int resolution = 128;
 
     public static void main(String[] args) {
 
         System.out.println("Please choose an option:\n 1. Real-time marching cubes: Generate shapes on-the-fly and display them in OpenGL (slow). \n 2. Precomputed marching cubes: Compute shapes offline, then display them in OpenGL (fast).");
-        Scanner reader = new Scanner(System.in);
-        int option = reader.nextInt();
-
-        while (option != 1 && option != 2) {
-            System.out.println("Invalid option. Please choose an option:\n 1. Run marching cubes algorithm cube by cube. \n 2. Run marching cubes algorithm in batch mode.");
-            option = reader.nextInt();
-        }
-
-        reader.close();
+//        Scanner reader = new Scanner(System.in);
+//        int option = reader.nextInt();
+//
+//        while (option != 1 && option != 2) {
+//            System.out.println("Invalid option. Please choose an option:\n 1. Run marching cubes algorithm cube by cube. \n 2. Run marching cubes algorithm in batch mode.");
+//            option = reader.nextInt();
+//        }
+//
+//        reader.close();
+        int option = 2;
 
         if (!glfwInit()) {
             System.exit(1);
@@ -83,7 +84,7 @@ public class MarchingCubes {
 
         // Create 3D Worley Noise
         System.out.println("Generating Worley Noise...");
-        Worley3DThreaded worley = new Worley3DThreaded(resolution, resolution, resolution, 8);
+        Worley3DThreaded worley = new Worley3DThreaded(resolution, resolution, resolution, 25);
         worley.invert();
         float[][][] worley_noise = worley.getData();
 
@@ -97,8 +98,8 @@ public class MarchingCubes {
         // VoxelGrid voxel_grid = new VoxelGrid(worley_noise, resolution);
 
         // Multihreaded
-//        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(worley_noise, resolution, 8); // Chunkify
-        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(perlin, resolution, 8); // Chunkify
+        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(worley_noise, resolution, 8); // Chunkify
+//        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(perlin, resolution, 8); // Chunkify
         // ParallelVoxelGrid voxel_grid = new ParallelVoxelGrid(worley_noise, resolution); // Shared Counter
 
         Mesh mesh = new Mesh();
@@ -166,6 +167,8 @@ public class MarchingCubes {
         int z = 0;
 
         System.out.println("Use WASD and Mouse Drag to move the camera. Press ESC to exit.");
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
 
         // MAIN LOOP
         while (!glfwWindowShouldClose(window)) {
@@ -242,6 +245,12 @@ public class MarchingCubes {
             }
             if (camera.pressedKeys[GLFW_KEY_D]) {
                 camera.moveLeft(-1f);
+            }
+            if (camera.pressedKeys[GLFW_KEY_SPACE]) {
+                camera.moveUp(1f);
+            }
+            if (camera.pressedKeys[GLFW_KEY_LEFT_SHIFT]) {
+                camera.moveUp(-1f);
             }
             if(camera.pressedKeys[GLFW_KEY_ESCAPE]) {
                 glfwSetWindowShouldClose(window, true);
