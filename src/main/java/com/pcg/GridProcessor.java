@@ -128,7 +128,7 @@ class MultithreadedVoxelGrid {
         HashMap<Thread, GridProcessor> thread_to_grid_processor = new HashMap<Thread, GridProcessor>();
 
         // start threads
-        num_rows_per_thread = this.resolution / num_threads;
+        num_rows_per_thread = (int)Math.ceil((float)this.resolution / (float)num_threads) ;
         for (int i = 0; i < num_threads; i++) {
             // create a grid processor for each thread
             GridProcessor grid_processor = new GridProcessor(voxel_grid, resolution, num_rows_per_thread * i, num_rows_per_thread);

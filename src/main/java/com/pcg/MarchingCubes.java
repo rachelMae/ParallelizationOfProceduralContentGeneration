@@ -32,9 +32,7 @@ public class MarchingCubes {
 
         System.out.println("Enter the resolution of the grid or press Enter for default (128): ");
         String res_input = reader.nextLine();
-        if (res_input.equals("")) {
-            resolution = 128;
-        } else {
+        if (!res_input.equals("")) {
             int input_resolution = Integer.parseInt(res_input);
             if (input_resolution > 0) {
                 resolution = input_resolution;
@@ -43,9 +41,7 @@ public class MarchingCubes {
 
         System.out.println("Enter the number of threads for Marching Cubes or press Enter for default (8): ");
         String thread_input = reader.nextLine();
-        if (thread_input.equals("")) {
-            num_threads = 8;
-        } else {
+        if (!thread_input.equals("")) {
             int input_threads = Integer.parseInt(thread_input);
             if (input_threads > 0) {
                 num_threads = input_threads;
@@ -87,7 +83,7 @@ public class MarchingCubes {
 
         // Create a camera
         Vector3f up = new Vector3f(0.0f, 1.0f, 0.0f);
-        Vector3f position = new Vector3f(20.0f, 20.0f, 10.0f);
+        Vector3f position = new Vector3f(0.0f, 0.0f, 0.0f);
         Vector3f target = new Vector3f(0.0f, 0.0f, 0.0f);
         float aspect = 800.0f / 600.0f;
         float fov = (float) Math.toRadians(45.0f);
@@ -216,9 +212,9 @@ public class MarchingCubes {
 
             // Draw wireframe cubes around each voxel
             if (wireframe_enabled) {
-                for (int i = 0; i < resolution; i++) {
-                    for (int j = 0; j < resolution; j++) {
-                        for (int k = 0; k < resolution; k++) {
+                for (int i = 0; i < resolution - 1; i++) {
+                    for (int j = 0; j < resolution - 1; j++) {
+                        for (int k = 0; k < resolution - 1; k++) {
                             // Calculate voxel position
                             float voxelSize = 1.0f;
                             float voxelSpacing = 1.0f; // Adjust as needed

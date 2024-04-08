@@ -20,7 +20,6 @@ import static org.lwjgl.system.MemoryStack.*;
 public class ShaderUtils {
     public static String loadShaderSource(String filename) throws IOException {
         StringBuilder shaderSource = new StringBuilder();
-        InputStream in = ClassLoader.getSystemResourceAsStream(filename);
         BufferedReader reader = new BufferedReader(new FileReader(filename));
         String line;
         while ((line = reader.readLine()) != null) {
