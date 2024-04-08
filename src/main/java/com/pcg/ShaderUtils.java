@@ -11,8 +11,6 @@ import static org.lwjgl.opengl.GL30.*;
 
 import java.io.*;
 import java.nio.FloatBuffer;
-
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 import org.lwjgl.BufferUtils;
@@ -71,18 +69,6 @@ public class ShaderUtils {
         return vao;
     }
 
-    // public static int generateVBOFloat(float[] data) {
-    //     int vbo_id = -1;
-    //     try (MemoryStack stack = stackPush()) {
-    //         FloatBuffer buffer = stackMallocFloat(data.length);
-    //         buffer.put(data);
-    //         buffer.flip();
-    //         vbo_id = glGenBuffers();
-    //         glBindBuffer(GL_ARRAY_BUFFER, vbo_id);
-    //         glBufferData(GL_ARRAY_BUFFER, buffer, GL_STATIC_DRAW);
-    //     }
-    //     return vbo_id;
-    // }
     public static int generateVBOFloat(float[] data) {
         FloatBuffer buffer = BufferUtils.createFloatBuffer(data.length);
         buffer.put(data);

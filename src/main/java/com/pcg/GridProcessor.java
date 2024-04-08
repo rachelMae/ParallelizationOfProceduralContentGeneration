@@ -1,6 +1,5 @@
 package com.pcg;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -64,7 +63,6 @@ class GridProcessor extends VoxelGrid implements Runnable {
                             this.positions,
                             (int)Thread.currentThread().getId()
                         );
-                        // System.out.println("Thread " + Thread.currentThread().getId() + " is processing voxel at (" + x + ", " + y + ", " + z + ")");
                     }
                 }
             }
@@ -72,8 +70,7 @@ class GridProcessor extends VoxelGrid implements Runnable {
         catch (Exception e) {
             System.out.println(Thread.currentThread().getId()  + " Exception is caught: " + e);
         } finally {
-            // System.out.println("Thread " + Thread.currentThread().getId() + " is done");
-            System.out.println("Thread " + Thread.currentThread().getId() + " has " + this.positions.size() + " vertices");
+            System.out.println("Thread ID <" + Thread.currentThread().getId() + "> created " + this.positions.size() + " vertices");
         }
     }
 
@@ -109,13 +106,7 @@ class MultithreadedVoxelGrid {
         }
     }
 
-    // Constructor with voxel grid provided
-    public MultithreadedVoxelGrid(ArrayList<Float> voxel_grid, int resolution, int num_threads) {
-        this.resolution = resolution;
-        this.num_threads = num_threads;
-        this.voxel_grid = voxel_grid;
-    }
-
+    // Constructor with 3D Array provided
     public MultithreadedVoxelGrid(float[][][] voxel_grid, int resolution, int num_threads) {
         this.resolution = resolution;
         this.num_threads = num_threads;
@@ -139,11 +130,13 @@ class MultithreadedVoxelGrid {
         // start threads
         num_rows_per_thread = this.resolution / num_threads;
         for (int i = 0; i < num_threads; i++) {
+            // create a grid processor for each thread
             GridProcessor grid_processor = new GridProcessor(voxel_grid, resolution, num_rows_per_thread * i, num_rows_per_thread);
             grid_processors[i] = grid_processor;
             Thread object = new Thread(grid_processor);
             threads[i] = object;
             thread_to_grid_processor.put(object, grid_processor);
+            // start the thread's run method
             object.start();
         }
 
@@ -162,43 +155,5 @@ class MultithreadedVoxelGrid {
         }
 
         return this.positions;
-    }
-
-    public static void main(String[] args) {
-        int resolution = 64;
-        int num_threads = 32;
-        if (args.length == 2) {
-            String input = args[0];
-            resolution = Integer.parseInt(input);
-            String input2 = args[1];
-            num_threads = Integer.parseInt(input2);
-        }
-
-        // Create Worley Noise from the Worley3DThreaded file
-        Worley3DThreaded worley = new Worley3DThreaded(resolution, resolution, resolution, 8);
-        worley.invert();
-        float[][][] worley_noise = worley.getData();
-
-        // for (int z = 0; z < resolution; z++) {
-        //     for (int y = 0; y < resolution; y++) {
-        //         for (int x = 0; x < resolution; x++) {
-        //             System.out.print(worley_noise[z][y][x]);
-        //         }
-        //     }
-        //     System.out.println("");
-        // }
-
-
-        // MultithreadedVoxelGrid example = new MultithreadedVoxelGrid(resolution, num_threads);
-        MultithreadedVoxelGrid example = new MultithreadedVoxelGrid(worley_noise, resolution, num_threads);
-
-        long start = System.nanoTime();
-
-        example.create_positions();
-
-        long end = System.nanoTime();
-
-        System.out.println("Number of vertices: " + example.positions.size());
-        System.out.println("Time (s): " + (end - start) / 1000000000.0 + "s");
     }
 }
