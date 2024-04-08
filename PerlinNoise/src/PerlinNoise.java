@@ -75,11 +75,11 @@ public class PerlinNoise {
         double u = fade(x);
         double v = fade(y);
         int A = perm[X] + Y;
-        int AA = perm[A];
-        int AB = perm[A + 1];
+        int AA = perm[A & 255];
+        int AB = perm[(A + 1) & 255];
         int B = perm[X + 1] + Y;
-        int BA = perm[B];
-        int BB = perm[B + 1];
+        int BA = perm[B & 255];
+        int BB = perm[(B + 1) & 255];
 
         return lerp(v, lerp(u, grad(perm[AA], x, y), grad(perm[BA], x - 1, y)),
                 lerp(u, grad(perm[AB], x, y - 1), grad(perm[BB], x - 1, y - 1)));
@@ -96,10 +96,10 @@ public class PerlinNoise {
         double v = fade(y);
         double w = fade(z);
         int A = perm[X] + Y;
-        int AA = perm[A] + Z;
-        int AB = perm[A + 1] + Z;
+        int AA = perm[A & 255] + Z;
+        int AB = perm[(A + 1) & 255] + Z;
         int B = perm[X + 1] + Y;
-        int BA = perm[B] + Z;
+        int BA = perm[B & 255] + Z;
         int BB = perm[(B + 1) & 255] + Z;
 
         return lerp(w, lerp(v, lerp(u, grad(perm[AA], x, y, z), grad(perm[BA], x - 1, y, z)),
