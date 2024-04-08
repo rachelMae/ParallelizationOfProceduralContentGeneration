@@ -3,6 +3,7 @@ package com.wavefunction;
 import java.awt.image.BufferedImage;
 import java.lang.Math;
 import java.util.Random;
+import java.util.concurrent.*;
 
 class StackEntry {
   private int x;
@@ -28,8 +29,7 @@ abstract class Model {
   int[][][] compatible;
   protected int[] observed;
 
-  StackEntry[] stack;
-  int stacksize;
+  ConcurrentLinkedQueue<StackEntry> stackQueue;
 
   protected Random random;
   protected int FMX, FMY, T;
@@ -108,8 +108,7 @@ abstract class Model {
     this.sumsOfWeightLogWeights = new double[this.FMX * this.FMY];
     this.entropies = new double[this.FMX * this.FMY];
 
-    this.stack = new StackEntry[this.wave.length * this.T];
-    this.stacksize = 0;
+    this.stackQueue = new ConcurrentLinkedQueue<>();
   }
 
   Boolean observe() {
@@ -163,8 +162,7 @@ abstract class Model {
 
     int[] comp = this.compatible[i][t];
     for (int d = 0; d < 4; d++) comp[d] = 0;
-    this.stack[this.stacksize] = new StackEntry(i, t);
-    this.stacksize++;
+    this.stackQueue.add(new StackEntry(i, t));
 
     this.sumsOfOnes[i] -= 1;
     this.sumsOfWeights[i] -= this.weights[t];
@@ -174,37 +172,52 @@ abstract class Model {
     this.entropies[i] = Math.log(sum) - this.sumsOfWeightLogWeights[i] / sum;
   }
 
+
+
   protected void propagate() {
-    while (this.stacksize > 0) {
-      StackEntry e1 = this.stack[this.stacksize - 1];
-      this.stacksize--;
-
-      int i1 = e1.getFirst();
-      int x1 = i1 % this.FMX;
-      int y1 = i1 / this.FMX;
-
-      for (int d = 0; d < 4; d++) {
-        int dx = Model.DX[d], dy = Model.DY[d];
-        int x2 = x1 + dx, y2 = y1 + dy;
-
-        if (this.onBoundary(x2, y2)) continue;
-
-        if (x2 < 0) x2 += this.FMX; else if (x2 >= this.FMX) x2 -= this.FMX;
-        if (y2 < 0) y2 += this.FMY; else if (y2 >= this.FMY) y2 -= this.FMY;
-
-        int i2 = x2 + y2 * this.FMX;
-        int[] p = this.propagator[d][e1.getSecond()];
-        int[][] compat = this.compatible[i2];
-
-        for (int l = 0; l < p.length; l++) {
-          int t2 = p[l];
-          int[] comp = compat[t2];
-
-          comp[d]--;
-          
-          if (comp[d] == 0) this.ban(i2, t2);
+    ExecutorService execServ = Executors.newCachedThreadPool();
+    while (!this.stackQueue.isEmpty()) {
+      execServ.submit(new Runnable() {
+        @Override
+        public void run() {
+          StackEntry e1 = Model.this.stackQueue.poll();
+          int i1 = e1.getFirst();
+          int x1 = i1 % Model.this.FMX;
+          int y1 = i1 / Model.this.FMX;
+    
+          for (int d = 0; d < 4; d++) {
+            int dx = Model.DX[d], dy = Model.DY[d];
+            int x2 = x1 + dx, y2 = y1 + dy;
+    
+            if (Model.this.onBoundary(x2, y2)) continue;
+    
+            if (x2 < 0) x2 += Model.this.FMX; else if (x2 >= Model.this.FMX) x2 -= Model.this.FMX;
+            if (y2 < 0) y2 += Model.this.FMY; else if (y2 >= Model.this.FMY) y2 -= Model.this.FMY;
+    
+            int i2 = x2 + y2 * Model.this.FMX;
+            int[] p = Model.this.propagator[d][e1.getSecond()];
+            int[][] compat = Model.this.compatible[i2];
+    
+            for (int l = 0; l < p.length; l++) {
+              int t2 = p[l];
+              int[] comp = compat[t2];
+    
+              comp[d]--;
+              
+              if (comp[d] == 0) {
+                Model.this.ban(i2, t2);
+              }
+            }
+          }
         }
-      }
+      });
+    }
+    execServ.shutdown();
+    try {
+      execServ.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+    } catch (Exception e) {
+      execServ.shutdownNow();
+      e.printStackTrace();
     }
   }
 
