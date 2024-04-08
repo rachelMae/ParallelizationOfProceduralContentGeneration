@@ -76,15 +76,19 @@ public class Camera {
     public void keyCallback(long window, int key, int scancode, int action, int mods) {
         // System.out.println("Key: " + key + " Action: " + action + " Mods: " + mods);
         if (key == GLFW_KEY_W && action == GLFW_PRESS) {
+            System.out.println("Moving right");
             pressedKeys[key] = true;
             walkForward(0.1f);
         } else if (key == GLFW_KEY_S && action == GLFW_PRESS) {
+            System.out.println("Moving left");
             pressedKeys[key] = true;
             walkBackwards(0.1f);
         } else if (key == GLFW_KEY_A && action == GLFW_PRESS) {
+            System.out.println("Moving down");
             pressedKeys[key] = true;
             strafeLeft(0.1f);
         } else if (key == GLFW_KEY_D && action == GLFW_PRESS) {
+            System.out.println("Moving up");
             pressedKeys[key] = true;
             strafeRight(0.1f);
         } else if (action == GLFW_RELEASE) {
@@ -139,30 +143,35 @@ public class Camera {
 	    pitch += amount;
 	}
 
-	public void walkForward(float distance)
-	{
-	    position.x += distance * (float)Math.sin(Math.toRadians(yaw + 90.0));
-	    position.y -= distance * (float)Math.cos(Math.toRadians(yaw));
-	}
+    public void walkForward(float distance) {
+        float xOffset = -distance * (float)Math.sin(Math.toRadians(yaw)) * (float)Math.cos(Math.toRadians(pitch));
+        float yOffset = -distance * (float)Math.sin(Math.toRadians(pitch));
+        float zOffset = distance * (float)Math.cos(Math.toRadians(yaw)) * (float)Math.cos(Math.toRadians(pitch));
+        position.x += xOffset;
+        position.y += yOffset;
+        position.z += zOffset;
+    }
 
-	//moves the camera backward relative to its current rotation (yaw)
-	public void walkBackwards(float distance)
-	{
-	    position.x += distance * (float)Math.sin(Math.toRadians(yaw));
-	    position.y -= distance * (float)Math.cos(Math.toRadians(yaw));
-	}
+    public void walkBackwards(float distance) {
+        float xOffset = distance * (float)Math.sin(Math.toRadians(yaw)) * (float)Math.cos(Math.toRadians(pitch));
+        float yOffset = distance * (float)Math.sin(Math.toRadians(pitch));
+        float zOffset = -distance * (float)Math.cos(Math.toRadians(yaw)) * (float)Math.cos(Math.toRadians(pitch));
+        position.x += xOffset;
+        position.y += yOffset;
+        position.z += zOffset;
+    }
 
-	//strafes the camera left relitive to its current rotation (yaw)
-	public void strafeLeft(float distance)
-	{
-	    position.x -= distance * (float)Math.sin(Math.toRadians(yaw-90));
-	    position.y += distance * (float)Math.cos(Math.toRadians(yaw-90));
-	}
+    public void strafeLeft(float distance) {
+        float xOffset = -distance * (float)Math.cos(Math.toRadians(yaw));
+        float zOffset = -distance * (float)Math.sin(Math.toRadians(yaw));
+        position.x += xOffset;
+        position.z += zOffset;
+    }
 
-	//strafes the camera right relitive to its current rotation (yaw)
-	public void strafeRight(float distance)
-	{
-	    position.x -= distance * (float)Math.sin(Math.toRadians(yaw+90));
-	    position.y += distance * (float)Math.cos(Math.toRadians(yaw+90));
-	}
+    public void strafeRight(float distance) {
+        float xOffset = distance * (float)Math.cos(Math.toRadians(yaw));
+        float zOffset = distance * (float)Math.sin(Math.toRadians(yaw));
+        position.x += xOffset;
+        position.z += zOffset;
+    }
 }
