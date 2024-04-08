@@ -13,7 +13,7 @@ import java.util.Scanner;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class Main {
+public class MarchingCubes {
     public static int resolution = 256;
 
     public static void main(String[] args) {
