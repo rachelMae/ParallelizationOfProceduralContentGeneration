@@ -59,7 +59,7 @@ public class VoxelGrid {
     }
 
     // run the marching cubes algorithm for the entire grid (batch mode)
-    public ArrayList<Vector3f> create_grid() {
+    public ArrayList<Vector3f> create_positions() {
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
         for (int z = 0; z < this.resolution - 1; z++) {
             for (int y = 0; y < this.resolution - 1; y++) {
@@ -121,19 +121,5 @@ public class VoxelGrid {
             }
         }
         return TriTable.TRIANGULATIONS[cube_index];
-    }
-
-    // Tests the VoxelGrid class
-    // Outputs the time it takes to run just the marching cubes algorithm at various resolutions
-    public static void main(String[] args) {
-        int resolution = 200;
-        if (args.length == 1) {
-            resolution = Integer.parseInt(args[0]);
-        }
-        long start = System.nanoTime();
-        VoxelGrid voxel_grid = new VoxelGrid(resolution);
-        voxel_grid.create_grid();
-        long end = System.nanoTime();
-        System.out.println("Time (s): " + (end - start) / 1000000000.0 + "s");
     }
 }
