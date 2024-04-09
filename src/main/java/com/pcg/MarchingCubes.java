@@ -57,7 +57,6 @@ public class MarchingCubes {
         // }
 
         reader.close();
-        int option = 2;
 
         if (!glfwInit()) {
             System.exit(1);
@@ -114,7 +113,7 @@ public class MarchingCubes {
 
         /** NOISE GENERATION METHODS */
         float[][][] noise;
-        if (option == 1) {
+        if (noiseOption == 1) {
             // Create 3D Worley Noise
             System.out.println("Generating Worley Noise...");
             long start = System.nanoTime();
@@ -136,14 +135,6 @@ public class MarchingCubes {
             System.out.println("Time to generate Perlin Noise (s): " + (end - start) / 1000000000.0 + "s");
         }
 
-        // NON-multithreaded
-        // VoxelGrid voxel_grid = new VoxelGrid(resolution); // uses scalar field to generate vertices
-        // VoxelGrid voxel_grid = new VoxelGrid(noise, resolution); // uses noise to generate vertices
-
-        // MULTITHREADED
-        MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(noise, resolution, num_threads); // Chunkify (FASTER)
-        // ParallelVoxelGrid voxel_grid = new ParallelVoxelGrid(noise, resolution); // Shared Counter (SLOW)
-
         // Create the mesh
         Mesh mesh = new Mesh();
         ArrayList<Vector3f> positions = new ArrayList<Vector3f>();
@@ -152,8 +143,20 @@ public class MarchingCubes {
         long start = System.nanoTime();
         System.out.println("Marching cubes...");
 
-        // Run the marching cubes algorithm
-        positions = voxel_grid.create_positions();
+        if (num_threads == 1) {
+            // NON-multithreaded
+            VoxelGrid voxel_grid = new VoxelGrid(noise, resolution); // Single Thread
+
+            // Run the marching cubes algorithm
+            positions = voxel_grid.create_positions();
+        } else {
+            // MULTITHREADED
+            MultithreadedVoxelGrid voxel_grid = new MultithreadedVoxelGrid(noise, resolution, num_threads); // Chunkify (FASTER)
+            // ParallelVoxelGrid voxel_grid = new ParallelVoxelGrid(noise, resolution); // Shared Counter (SLOW)
+
+            // Run the marching cubes algorithm
+            positions = voxel_grid.create_positions();
+        }
 
         long end = System.nanoTime();
         System.out.println("Time to complete Marching Cubes (s): " + (end - start) / 1000000000.0 + "s");
