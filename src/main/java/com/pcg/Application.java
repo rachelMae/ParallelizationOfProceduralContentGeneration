@@ -20,6 +20,7 @@ public class Application {
             case 2:
                 System.out.println("Running Wave Function Collapse algorithm...");
                 // WFC main function goes here
+                WFC.WaveFunctionCollapse();
                 break;
         }
     }

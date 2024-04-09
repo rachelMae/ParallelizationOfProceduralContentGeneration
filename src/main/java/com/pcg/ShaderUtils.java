@@ -35,8 +35,8 @@ public class ShaderUtils {
         int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
 
         try {
-            String vertexShaderSource = ShaderUtils.loadShaderSource("src/main/java/com/pcg/shaders/vertShader.glsl");
-            String fragmentShaderSource = ShaderUtils.loadShaderSource("src/main/java/com/pcg/shaders/fragShader.glsl");
+            String vertexShaderSource = ShaderUtils.loadShaderSource("shaders/vertShader.glsl");
+            String fragmentShaderSource = ShaderUtils.loadShaderSource("shaders/fragShader.glsl");
 
             // Load and compile vertex shader
             glShaderSource(vertexShader, vertexShaderSource);
