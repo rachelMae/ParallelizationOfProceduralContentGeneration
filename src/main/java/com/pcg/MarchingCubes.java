@@ -16,7 +16,7 @@ import org.joml.Vector3f;
 public class MarchingCubes {
     public static int resolution = 512;
 
-    public static void main(String[] args) {
+    public static void MarchingCubes() {
 
         System.out.println("Please choose an option:\n 1. Worley Noise \n 2. Perlin Noise");
         Scanner reader = new Scanner(System.in);
