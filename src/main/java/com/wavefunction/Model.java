@@ -24,10 +24,10 @@ class StackEntry {
 }
 
 abstract class Model {
-  protected boolean[][] wave;
+  protected boolean[][] wave; // Wave Function. [index][pattern] = true or false.
   protected int[][][] propagator;
-  int[][][] compatible;
-  protected int[] observed;
+  int[][][] compatible; // Compatibility Matrix. index, pattern, and then 0-4 to represent the cardinally adjacent pixels.
+  protected int[] observed; // Final image matrix. Every index matched to its pattern. [index] = pattern.
 
   ConcurrentLinkedQueue<StackEntry> stackQueue;
 
@@ -112,9 +112,15 @@ abstract class Model {
   }
 
   Boolean observe() {
+    // Initial conditions assume picture is ready.
     double min = 1e+3;
     int argmin = -1;
 
+    /* For ever index in the wave function (Which combines x and y of pixel):
+     * Nothing if boundary, return false if possibilities are used up, set a new argmin if
+     * entropy plus noise is lower than 1e+3, which means there's still a pixel in need of
+     * collapse.
+     */
     for (int i = 0; i < this.wave.length; i++) {
       if (this.onBoundary(i % this.FMX, i / this.FMX)) continue;
 
@@ -133,7 +139,7 @@ abstract class Model {
       }
     }
     
-
+    // If no pixel needs collapse, the algorithm succeeds and prepares the patterned image.
     if (argmin == -1) {
       this.observed = new int[this.FMX * this.FMY];
       for (int i = 0; i < this.wave.length; i++) for (int t = 0; t <
@@ -144,32 +150,35 @@ abstract class Model {
       return true;
     }
 
+    // Prepare distribution according to weights of each pattern, using current wave function.
     double[] distribution = new double[this.T];
     for (int t = 0; t < this.T; t++) distribution[t] =
       this.wave[argmin][t] ? this.weights[t] : 0;
 
+    // Collapse random pattern onto index argmin.
     int r = Model.randomIndice(distribution, this.random.nextDouble());
-
-
     boolean[] w = this.wave[argmin];
     for (int t = 0; t < this.T; t++) if (w[t] != (t == r)) this.ban(argmin, t);
-
     return null;
   }
 
   protected void ban(int i, int t) {
+    // Set wave function to be false for the pattern at the index.
     this.wave[i][t] = false;
 
+    // Mark entire compatibility matrix for the pattern at the index as false.
     int[] comp = this.compatible[i][t];
     for (int d = 0; d < 4; d++) comp[d] = 0;
-    this.stackQueue.add(new StackEntry(i, t));
 
+    // Discount the pattern from all appropriate lists.
     this.sumsOfOnes[i] -= 1;
     this.sumsOfWeights[i] -= this.weights[t];
     this.sumsOfWeightLogWeights[i] -= this.weightLogWeights[t];
 
+    // Set entropy, and add the pixel and pattern to queue of changed pixels.
     double sum = this.sumsOfWeights[i];
     this.entropies[i] = Math.log(sum) - this.sumsOfWeightLogWeights[i] / sum;
+    this.stackQueue.add(new StackEntry(i, t));
   }
 
 
@@ -180,11 +189,20 @@ abstract class Model {
       execServ.submit(new Runnable() {
         @Override
         public void run() {
+          // Get index and address of the first pixel in the queue.
           StackEntry e1 = Model.this.stackQueue.poll();
           int i1 = e1.getFirst();
           int x1 = i1 % Model.this.FMX;
           int y1 = i1 / Model.this.FMX;
     
+          /* For every cardinally adjacent pixel, unless on a boundary:
+           * Take combined index value of address and get that index's compatibility matrix.
+           * Get compatibility list (Propagator) for the direction from this pattern.
+           * For every potentially compatible pattern:
+           *  Get the compatibility matrix for that value on the index.
+           *  Decrease compatibility level for the direction at that value on this pattern.
+           *  If the remaining compatibility value is zero, ban the pattern from the index.
+           */
           for (int d = 0; d < 4; d++) {
             int dx = Model.DX[d], dy = Model.DY[d];
             int x2 = x1 + dx, y2 = y1 + dy;
