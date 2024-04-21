@@ -3,6 +3,7 @@ package com.wavefunction;
 import java.awt.image.BufferedImage;
 import java.lang.Math;
 import java.util.Random;
+import java.util.concurrent.*;
 
 class StackEntry {
   private int x;
@@ -23,13 +24,12 @@ class StackEntry {
 }
 
 abstract class Model {
-  protected boolean[][] wave;
+  protected boolean[][] wave; // Wave Function. [index][pattern] = true or false.
   protected int[][][] propagator;
-  int[][][] compatible;
-  protected int[] observed;
+  int[][][] compatible; // Compatibility Matrix. index, pattern, and then 0-4 to represent the cardinally adjacent pixels.
+  protected int[] observed; // Final image matrix. Every index matched to its pattern. [index] = pattern.
 
-  StackEntry[] stack;
-  int stacksize;
+  ConcurrentLinkedQueue<StackEntry> stackQueue;
 
   protected Random random;
   protected int FMX, FMY, T;
@@ -108,14 +108,19 @@ abstract class Model {
     this.sumsOfWeightLogWeights = new double[this.FMX * this.FMY];
     this.entropies = new double[this.FMX * this.FMY];
 
-    this.stack = new StackEntry[this.wave.length * this.T];
-    this.stacksize = 0;
+    this.stackQueue = new ConcurrentLinkedQueue<>();
   }
 
   Boolean observe() {
+    // Initial conditions assume picture is ready.
     double min = 1e+3;
     int argmin = -1;
 
+    /* For ever index in the wave function (Which combines x and y of pixel):
+     * Nothing if boundary, return false if possibilities are used up, set a new argmin if
+     * entropy plus noise is lower than 1e+3, which means there's still a pixel in need of
+     * collapse.
+     */
     for (int i = 0; i < this.wave.length; i++) {
       if (this.onBoundary(i % this.FMX, i / this.FMX)) continue;
 
@@ -134,7 +139,7 @@ abstract class Model {
       }
     }
     
-
+    // If no pixel needs collapse, the algorithm succeeds and prepares the patterned image.
     if (argmin == -1) {
       this.observed = new int[this.FMX * this.FMY];
       for (int i = 0; i < this.wave.length; i++) for (int t = 0; t <
@@ -145,66 +150,92 @@ abstract class Model {
       return true;
     }
 
+    // Prepare distribution according to weights of each pattern, using current wave function.
     double[] distribution = new double[this.T];
     for (int t = 0; t < this.T; t++) distribution[t] =
       this.wave[argmin][t] ? this.weights[t] : 0;
 
+    // Collapse random pattern onto index argmin.
     int r = Model.randomIndice(distribution, this.random.nextDouble());
-
-
     boolean[] w = this.wave[argmin];
     for (int t = 0; t < this.T; t++) if (w[t] != (t == r)) this.ban(argmin, t);
-
     return null;
   }
 
   protected void ban(int i, int t) {
+    // Set wave function to be false for the pattern at the index.
     this.wave[i][t] = false;
 
+    // Mark entire compatibility matrix for the pattern at the index as false.
     int[] comp = this.compatible[i][t];
     for (int d = 0; d < 4; d++) comp[d] = 0;
-    this.stack[this.stacksize] = new StackEntry(i, t);
-    this.stacksize++;
 
+    // Discount the pattern from all appropriate lists.
     this.sumsOfOnes[i] -= 1;
     this.sumsOfWeights[i] -= this.weights[t];
     this.sumsOfWeightLogWeights[i] -= this.weightLogWeights[t];
 
+    // Set entropy, and add the pixel and pattern to queue of changed pixels.
     double sum = this.sumsOfWeights[i];
     this.entropies[i] = Math.log(sum) - this.sumsOfWeightLogWeights[i] / sum;
+    this.stackQueue.add(new StackEntry(i, t));
   }
 
+
+
   protected void propagate() {
-    while (this.stacksize > 0) {
-      StackEntry e1 = this.stack[this.stacksize - 1];
-      this.stacksize--;
-
-      int i1 = e1.getFirst();
-      int x1 = i1 % this.FMX;
-      int y1 = i1 / this.FMX;
-
-      for (int d = 0; d < 4; d++) {
-        int dx = Model.DX[d], dy = Model.DY[d];
-        int x2 = x1 + dx, y2 = y1 + dy;
-
-        if (this.onBoundary(x2, y2)) continue;
-
-        if (x2 < 0) x2 += this.FMX; else if (x2 >= this.FMX) x2 -= this.FMX;
-        if (y2 < 0) y2 += this.FMY; else if (y2 >= this.FMY) y2 -= this.FMY;
-
-        int i2 = x2 + y2 * this.FMX;
-        int[] p = this.propagator[d][e1.getSecond()];
-        int[][] compat = this.compatible[i2];
-
-        for (int l = 0; l < p.length; l++) {
-          int t2 = p[l];
-          int[] comp = compat[t2];
-
-          comp[d]--;
-          
-          if (comp[d] == 0) this.ban(i2, t2);
+    ExecutorService execServ = Executors.newCachedThreadPool();
+    while (!this.stackQueue.isEmpty()) {
+      execServ.submit(new Runnable() {
+        @Override
+        public void run() {
+          // Get index and address of the first pixel in the queue.
+          StackEntry e1 = Model.this.stackQueue.poll();
+          int i1 = e1.getFirst();
+          int x1 = i1 % Model.this.FMX;
+          int y1 = i1 / Model.this.FMX;
+    
+          /* For every cardinally adjacent pixel, unless on a boundary:
+           * Take combined index value of address and get that index's compatibility matrix.
+           * Get compatibility list (Propagator) for the direction from this pattern.
+           * For every potentially compatible pattern:
+           *  Get the compatibility matrix for that value on the index.
+           *  Decrease compatibility level for the direction at that value on this pattern.
+           *  If the remaining compatibility value is zero, ban the pattern from the index.
+           */
+          for (int d = 0; d < 4; d++) {
+            int dx = Model.DX[d], dy = Model.DY[d];
+            int x2 = x1 + dx, y2 = y1 + dy;
+    
+            if (Model.this.onBoundary(x2, y2)) continue;
+    
+            if (x2 < 0) x2 += Model.this.FMX; else if (x2 >= Model.this.FMX) x2 -= Model.this.FMX;
+            if (y2 < 0) y2 += Model.this.FMY; else if (y2 >= Model.this.FMY) y2 -= Model.this.FMY;
+    
+            int i2 = x2 + y2 * Model.this.FMX;
+            int[] p = Model.this.propagator[d][e1.getSecond()];
+            int[][] compat = Model.this.compatible[i2];
+    
+            for (int l = 0; l < p.length; l++) {
+              int t2 = p[l];
+              int[] comp = compat[t2];
+    
+              comp[d]--;
+              
+              if (comp[d] == 0) {
+                Model.this.ban(i2, t2);
+              }
+            }
+          }
         }
-      }
+      });
+    }
+    execServ.shutdown();
+    try {
+      execServ.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+    } catch (Exception e) {
+      execServ.shutdownNow();
+      e.printStackTrace();
     }
   }
 

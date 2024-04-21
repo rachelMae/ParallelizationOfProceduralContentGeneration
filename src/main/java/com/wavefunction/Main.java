@@ -155,9 +155,8 @@ public class Main {
 	      
 	      Boolean finished = false;
 
-			for (int i = 0; i < 10; i++) {
+			while (!finished) {
 				finished = tiled_model.run(random.nextInt(), 0);
-				if (finished) break;
 			}
 
 			System.out.println("Finished: " + finished);
@@ -191,9 +190,8 @@ public class Main {
 
 			Boolean finished = false;
 
-			for (int i = 0; i < 10; i++) {
+			while (!finished) {
 				finished = model.run(random.nextInt(), 0);
-				if (finished) break;
 			}
 
 			System.out.println("Finished: " + finished);
@@ -209,7 +207,7 @@ public class Main {
 	}
 	
   public static void main(String[] args) {
-	// runTiledModel("Dense Fabric");
-    runOverlappingModel("citytemplate.png");
+	runTiledModel("Dense Fabric");
+    // runOverlappingModel("citytemplate.png");
   }
 }
